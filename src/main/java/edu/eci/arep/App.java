@@ -1,5 +1,7 @@
 package edu.eci.arep;
 
+import edu.eci.arep.services.CacheService;
+import edu.eci.arep.services.impl.CacheServiceImpl;
 import spark.Request;
 import spark.Response;
 
@@ -7,9 +9,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.List;
 
 import static spark.Spark.get;
 import static spark.Spark.port;
@@ -18,6 +17,8 @@ import static spark.Spark.port;
  * Spark Mean And Standard Web App
  */
 public class App {
+
+    private static final CacheService cacheService = new CacheServiceImpl();
 
     /**
      * Main function of the Spark App.
@@ -37,7 +38,13 @@ public class App {
      * @return A String that represents the HTML of the Result Page.
      */
     private static String resultPage(Request req, Response res) throws Exception {
-        String rta = getResult(req.queryParams("lugar"));
+        String rta;
+        rta = cacheService.returnKey(req.queryParams("lugar"));
+        System.out.println("rrr " + rta);
+        if (rta == null) {
+            rta = getResult(req.queryParams("lugar"));
+            cacheService.saveKey(req.queryParams("lugar"), rta);
+        }
         return rta;
     }
 
